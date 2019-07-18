@@ -1,6 +1,5 @@
 package target
 
-
 import "fmt"
 
 //Postgres struct to return Postgres queries
@@ -54,10 +53,10 @@ func (p Postgres) GetSequenceByBatchSQL(schema string) string {
 
 //GetSequenceByBatchSQL query to return sequences by batch
 func (p Postgres) CountSchemaSQL() string {
-	return `SELECT schema_name FROM information_schema.schemata WHERE schema_name  = $1`
+	return `SELECT count(1) FROM information_schema.schemata WHERE schema_name  = $1`
 }
 
 //CreateSchemaSQL query to check if migration schema exists
-func (p Postgres) CreateSchemaSQL(schema string)string {
+func (p Postgres) CreateSchemaSQL(schema string) string {
 	return fmt.Sprintf(`CREATE SCHEMA "%s"`, schema)
 }

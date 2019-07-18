@@ -75,10 +75,10 @@ func (base *Database) ExecuteMigration(schema string, command string) error {
 func (base *Database) GetSequenceByBatch(schema string, batch string) ([]int, error) {
 	var sequences []int
 	stmt, err := base.DB.Prepare(base.mq.GetSequenceByBatchSQL(schema))
-	defer stmt.Close()
 	if err != nil {
 		return sequences, err
 	}
+	defer stmt.Close()
 	result, err1 := stmt.Query(batch)
 	if err1 != nil {
 		return sequences, err1
@@ -97,10 +97,10 @@ func (base *Database) GetSequenceByBatch(schema string, batch string) ([]int, er
 }
 
 //DoesSchemaExists Check if schema exists
-func (base *Database) DoesSchemaExists(schema string, batch string) (bool, error) {
+func (base *Database) DoesSchemaExists(schema string) (bool, error) {
 	var count int
 	err := base.DB.QueryRow(base.mq.CountSchemaSQL(), schema).Scan(&count)
-	return count > 1, err
+	return count > 0, err
 }
 
 //CreateSchema Create the schema

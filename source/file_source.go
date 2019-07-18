@@ -8,16 +8,15 @@ import (
 	"strings"
 )
 
-//FileSource file implmetation for MigrationSource
+//FileSource file implementation for MigrationSource
 type FileSource struct {
-	schmeas                 []string
+	schemas                 []string
 	schemaUpMigrationsMap   map[string]map[int]string
 	schemaDownMigrationsMap map[string]map[int]string
 	sortedVersions          []int
 	location                string
 	reader                  FileReader
 }
-
 
 func getFileDetails(file string) (version int, isUp bool, isDown bool, err error) {
 	parts := strings.Split(file, ".")
@@ -61,7 +60,7 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 	var schemaDownFilesMap = make(map[string]map[int]string)
 	var versions []int
 	for _, folder := range folders {
-		files, err := fs.ReadfilesWithExtension(filepath.Join(baseLocation,folder), ".sql")
+		files, err := fs.ReadfilesWithExtension(filepath.Join(baseLocation, folder), ".sql")
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +90,7 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 	versions = unique(versions)
 	sort.Ints(versions)
 	source := FileSource{
-		schmeas:                 folders,
+		schemas:                 folders,
 		schemaUpMigrationsMap:   schemaUPFilesMap,
 		schemaDownMigrationsMap: schemaDownFilesMap,
 		sortedVersions:          versions,
@@ -103,7 +102,7 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 
 // GetSchemaList returns list of folders which will be used ad shcema names
 func (fs *FileSource) GetSchemaList() ([]string, error) {
-	return fs.schmeas, nil
+	return fs.schemas, nil
 }
 
 // GetSortedVersions gets the list of verrsion numbers
@@ -113,14 +112,14 @@ func (fs *FileSource) GetSortedVersions(schema string) ([]int, error) {
 
 // GetMigrationUpFile returns the Migration Up Files of specifed version
 func (fs *FileSource) GetMigrationUpFile(schema string, version int) (string, string, error) {
-	filePath := filepath.Join(fs.location , schema , fs.schemaUpMigrationsMap[schema][version])
+	filePath := filepath.Join(fs.location, schema, fs.schemaUpMigrationsMap[schema][version])
 	contents, err := fs.reader.ReadFileAsString(filePath)
 	return fs.schemaUpMigrationsMap[schema][version], contents, err
 }
 
 // GetMigrationDownFile returns the Migration Down Files of specifed version
 func (fs *FileSource) GetMigrationDownFile(schema string, version int) (string, string, error) {
-	filePath := filepath.Join( fs.location , schema ,fs.schemaDownMigrationsMap[schema][version])
+	filePath := filepath.Join(fs.location, schema, fs.schemaDownMigrationsMap[schema][version])
 	contents, err := fs.reader.ReadFileAsString(filePath)
 	return fs.schemaDownMigrationsMap[schema][version], contents, err
 }
