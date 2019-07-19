@@ -3,7 +3,7 @@ package migrator
 import (
 	sourceMocks "github.com/apty/dbmigrate/source/mocks"
 	"github.com/apty/dbmigrate/target"
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
