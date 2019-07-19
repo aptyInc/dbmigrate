@@ -4,41 +4,53 @@ import (
 	"database/sql"
 )
 
-//Database to access the database
-type Database struct {
+type Database interface{
+	DoMigrationTableExists(schema string) (bool, error)
+	CreateMigrationTable(schema string) error
+	GetMaxSequence(schema string) (int, error)
+	GetLatestBatch(schema string) (string, error)
+	InsertMigrationLog(schema string, version int, name string, batch string) error
+	DeleteMigrationLog(schema string, batch string) error
+	ExecuteMigration(schema string, command string) error
+	GetSequenceByBatch(schema string, batch string) ([]int, error)
+	DoesSchemaExists(schema string) (bool, error)
+	CreateSchema(schema string) error
+}
+//DatabaseImplementation to access the database
+type DatabaseImplementation struct {
 	mq MigrationQueries
 	DB *sql.DB
 }
 
 //DoMigrationTableExists Check if migration table exsists
-func (base *Database) DoMigrationTableExists(schema string) (bool, error) {
+func (base *DatabaseImplementation) DoMigrationTableExists(schema string) (bool, error) {
 	var count int
 	err := base.DB.QueryRow(base.mq.CountMigrationTableSQL(), schema).Scan(&count)
 	return count > 0, err
 }
 
 //CreateMigrationTable Create a migration table
-func (base *Database) CreateMigrationTable(schema string) error {
+func (base *DatabaseImplementation) CreateMigrationTable(schema string) error {
 	_, err := base.DB.Exec(base.mq.CreateMigrationTableSQL(schema))
 	return err
 }
 
 //GetMaxSequence Gets the max sequence in the schema
-func (base *Database) GetMaxSequence(schema string) (int, error) {
+func (base *DatabaseImplementation) GetMaxSequence(schema string) (int, error) {
 	var num int
 	err := base.DB.QueryRow(base.mq.GetMaxSequenceSQL(schema)).Scan(&num)
 	return num, err
 }
 
 //GetLatestBatch Gets the latest batch in the schema
-func (base *Database) GetLatestBatch(schema string) (string, error) {
+func (base *DatabaseImplementation) GetLatestBatch(schema string) (string, error) {
 	var batch string
 	err := base.DB.QueryRow(base.mq.GetLatestBatchSQL(schema)).Scan(&batch)
 	return batch, err
 }
 
 //InsertMigrationLog inserts a migration log
-func (base *Database) InsertMigrationLog(schema string, version int, name string, batch string) error {
+func (base *DatabaseImplementation) InsertMigrationLog(schema string, version int, name string, batch string) error {
 	stmt, err := base.DB.Prepare(base.mq.InsertMigrationLogSQL(schema))
 
 	if err != nil {
@@ -50,7 +62,7 @@ func (base *Database) InsertMigrationLog(schema string, version int, name string
 }
 
 //DeleteMigrationLog Deletes a batch of migration logs
-func (base *Database) DeleteMigrationLog(schema string, batch string) error {
+func (base *DatabaseImplementation) DeleteMigrationLog(schema string, batch string) error {
 	stmt, err := base.DB.Prepare(base.mq.DeleteMigrationLogSQL(schema))
 	if err != nil {
 		return err
@@ -61,7 +73,7 @@ func (base *Database) DeleteMigrationLog(schema string, batch string) error {
 }
 
 //ExecuteMigration executes the given SQL as script
-func (base *Database) ExecuteMigration(schema string, command string) error {
+func (base *DatabaseImplementation) ExecuteMigration(schema string, command string) error {
 	_, err1 := base.DB.Exec(base.mq.SetSchemaSQL(schema))
 	if err1 != nil {
 		return err1
@@ -72,7 +84,7 @@ func (base *Database) ExecuteMigration(schema string, command string) error {
 }
 
 //GetSequenceByBatch get the sequence ids by batch
-func (base *Database) GetSequenceByBatch(schema string, batch string) ([]int, error) {
+func (base *DatabaseImplementation) GetSequenceByBatch(schema string, batch string) ([]int, error) {
 	var sequences []int
 	stmt, err := base.DB.Prepare(base.mq.GetSequenceByBatchSQL(schema))
 	if err != nil {
@@ -97,14 +109,14 @@ func (base *Database) GetSequenceByBatch(schema string, batch string) ([]int, er
 }
 
 //DoesSchemaExists Check if schema exists
-func (base *Database) DoesSchemaExists(schema string) (bool, error) {
+func (base *DatabaseImplementation) DoesSchemaExists(schema string) (bool, error) {
 	var count int
 	err := base.DB.QueryRow(base.mq.CountSchemaSQL(), schema).Scan(&count)
 	return count > 0, err
 }
 
 //CreateSchema Create the schema
-func (base *Database) CreateSchema(schema string) error {
+func (base *DatabaseImplementation) CreateSchema(schema string) error {
 	_, err := base.DB.Exec(base.mq.CreateSchemaSQL(schema))
 	return err
 }

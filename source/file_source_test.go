@@ -1,7 +1,7 @@
 package source
 
 import (
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,20 +22,20 @@ func (suite *FileSourceTestSuite) SetupSuite() {
 }
 
 func (suite *FileSourceTestSuite) TestValidFileSource() {
-	const basePath = "/test"
+	var basePath = filepath.Join("base")
 	var dirs = []string{"sub1", "sub2"}
 	var files = []string{"03-file1.UP.sql", "03-file1.DOWN.sql", "02-file2.UP.sql", "02-file2.DOWN.sql"}
 	suite.mockFR.On("ReadDirs", basePath).Return(dirs, nil)
-	suite.mockFR.On("ReadFilesWithExtension", path.Join(basePath, dirs[0]), ".sql").Return(files, nil)
-	suite.mockFR.On("ReadFilesWithExtension", path.Join(basePath, dirs[1]), ".sql").Return(files, nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[0], files[0])).Return(files[0], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[0], files[1])).Return(files[1], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[0], files[2])).Return(files[2], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[0], files[3])).Return(files[3], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[1], files[0])).Return(files[0], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[1], files[1])).Return(files[1], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[1], files[2])).Return(files[2], nil)
-	suite.mockFR.On("ReadFileAsString", path.Join(basePath, dirs[1], files[3])).Return(files[3], nil)
+	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, dirs[0]), ".sql").Return(files, nil)
+	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, dirs[1]), ".sql").Return(files, nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[0], files[0])).Return(files[0], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[0], files[1])).Return(files[1], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[0], files[2])).Return(files[2], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[0], files[3])).Return(files[3], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[1], files[0])).Return(files[0], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[1], files[1])).Return(files[1], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[1], files[2])).Return(files[2], nil)
+	suite.mockFR.On("ReadFileAsString", filepath.Join(basePath, dirs[1], files[3])).Return(files[3], nil)
 	fs, err := GetFileSource(basePath, suite.mockFR)
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), fs)

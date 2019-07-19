@@ -16,7 +16,7 @@ type PGDatabaseTestSuite struct {
 	suite.Suite
 	sqlMock sqlmock.Sqlmock
 	mockDB  *sql.DB
-	db      *Database
+	db      *DatabaseImplementation
 }
 
 const sampleSchema = "TestSchema"
@@ -27,7 +27,7 @@ func (suite *PGDatabaseTestSuite) SetupSuite() {
 	suite.mockDB = mockDB
 	suite.sqlMock = sqlMock
 	mq := new(mocks.MigrationQueries)
-	suite.db = &Database{mq, mockDB}
+	suite.db = &DatabaseImplementation{mq, mockDB}
 	mq.On("CountMigrationTableSQL").Return("CountMigrationTableSQL")
 	mq.On("CreateMigrationTableSQL", sampleSchema).Return("CreateMigrationTableSQL")
 	mq.On("GetMaxSequenceSQL", sampleSchema).Return("GetMaxSequenceSQL")

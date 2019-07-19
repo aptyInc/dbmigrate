@@ -8,13 +8,19 @@ import (
 	"github.com/apty/dbmigrate/target"
 )
 
-//DBMigrator the main service to execute the migration
-type DBMigrator struct {
+type DBMigration interface{
+	MigrateSchemaUp(schema string) error
+	MigrateSchemaDown(schema string) error
+	MigrateUp() error
+	MigrateDown() error
+}
+//DBMigrationImplementation the main service to execute the migration
+type DBMigrationImplementation struct {
 	src *source.FileSource
-	tgt *target.Database
+	tgt *target.DatabaseImplementation
 }
 
-func (dbm *DBMigrator) initGetMaxSequence(schema string) (int, error) {
+func (dbm *DBMigrationImplementation) initGetMaxSequence(schema string) (int, error) {
 	isFound, err1 := dbm.tgt.DoMigrationTableExists(schema)
 	if err1 != nil {
 		return -1, err1
@@ -25,7 +31,7 @@ func (dbm *DBMigrator) initGetMaxSequence(schema string) (int, error) {
 	}
 	return dbm.tgt.GetMaxSequence(schema)
 }
-func (dbm *DBMigrator) migrateSequenceUp(schema string, version int, batch string) error {
+func (dbm *DBMigrationImplementation) migrateSequenceUp(schema string, version int, batch string) error {
 	name, commands, err1 := dbm.src.GetMigrationUpFile(schema, version)
 
 	if err1 != nil {
@@ -40,7 +46,7 @@ func (dbm *DBMigrator) migrateSequenceUp(schema string, version int, batch strin
 
 }
 
-func (dbm *DBMigrator) migrateSequenceDown(schema string, version int) error {
+func (dbm *DBMigrationImplementation) migrateSequenceDown(schema string, version int) error {
 	_, commands, err1 := dbm.src.GetMigrationDownFile(schema, version)
 
 	if err1 != nil {
@@ -50,7 +56,7 @@ func (dbm *DBMigrator) migrateSequenceDown(schema string, version int) error {
 
 }
 
-func (dbm *DBMigrator) MigrateSchemaUp(schema string) error {
+func (dbm *DBMigrationImplementation) MigrateSchemaUp(schema string) error {
 
 	maxSequence, err1 := dbm.initGetMaxSequence(schema)
 	if err1 != nil {
@@ -72,14 +78,14 @@ func (dbm *DBMigrator) MigrateSchemaUp(schema string) error {
 	return nil
 }
 
-func (dbm *DBMigrator) MigrateSchemaDown(schema string) error {
+func (dbm *DBMigrationImplementation) MigrateSchemaDown(schema string) error {
 
 	doExisit, err1 := dbm.tgt.DoMigrationTableExists(schema)
 	if err1 != nil {
 		return err1
 	}
 	if !doExisit {
-		return fmt.Errorf("No Migrations in schema")
+		return fmt.Errorf("no Migrations in schema")
 	}
 
 	batch, err2 := dbm.tgt.GetLatestBatch(schema)
@@ -101,7 +107,7 @@ func (dbm *DBMigrator) MigrateSchemaDown(schema string) error {
 }
 
 //MigrateUp  Migrates all the schemas Up
-func (dbm *DBMigrator) MigrateUp() error {
+func (dbm *DBMigrationImplementation) MigrateUp() error {
 	schemasT0Migrate, err1 := dbm.src.GetSchemaList()
 	if err1 != nil {
 		return err1
@@ -116,7 +122,7 @@ func (dbm *DBMigrator) MigrateUp() error {
 }
 
 //MigrateDown  Migrates all the schemas Down
-func (dbm *DBMigrator) MigrateDown() error {
+func (dbm *DBMigrationImplementation) MigrateDown() error {
 	schemasT0Migrate, err1 := dbm.src.GetSchemaList()
 	if err1 != nil {
 		return err1
