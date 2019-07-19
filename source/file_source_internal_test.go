@@ -55,10 +55,11 @@ func (suite *FileSourceInternalTestSuite) TestGetFileDetailsWrongInputs() {
 		"test.UP.sql",
 		"1.UP.SQL",
 		"3.4-NEW.UP.SQL",
+		"data-data.UP.SQL",
 	}
 	for _, input := range inputs {
 		_, _, _, err := getFileDetails(input)
-		assert.Error(suite.T(), err)
+		assert.NotNil(suite.T(), err)
 	}
 }
 

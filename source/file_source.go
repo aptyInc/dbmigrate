@@ -60,7 +60,7 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 	var schemaDownFilesMap = make(map[string]map[int]string)
 	var versions []int
 	for _, folder := range folders {
-		files, err := fs.ReadfilesWithExtension(filepath.Join(baseLocation, folder), ".sql")
+		files, err := fs.ReadFilesWithExtension(filepath.Join(baseLocation, folder), ".sql")
 		if err != nil {
 			return nil, err
 		}

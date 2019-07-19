@@ -53,8 +53,8 @@ func (_m *FileReader) ReadFileAsString(path string) (string, error) {
 	return r0, r1
 }
 
-// ReadfilesWithExtension provides a mock function with given fields: root, extn
-func (_m *FileReader) ReadfilesWithExtension(root string, extn string) ([]string, error) {
+// ReadFilesWithExtension provides a mock function with given fields: root, extn
+func (_m *FileReader) ReadFilesWithExtension(root string, extn string) ([]string, error) {
 	ret := _m.Called(root, extn)
 
 	var r0 []string
