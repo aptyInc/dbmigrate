@@ -1,6 +1,7 @@
 package source
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -16,8 +17,39 @@ type FileSourceTestSuite struct {
 	mockFR *mocks.FileReader
 }
 
-func (suite *FileSourceTestSuite) SetupSuite() {
+func (suite *FileSourceTestSuite) SetupTest() {
 	suite.mockFR = new(mocks.FileReader)
+
+}
+const customError  ="MyError"
+
+func (suite *FileSourceTestSuite) TestValidFileSource_ErrorWithReadDirs() {
+	var basePath = filepath.Join("base")
+	err := fmt.Errorf(customError)
+	suite.mockFR.On("ReadDirs", basePath).Return(nil, err)
+	_ , err1 := GetFileSource(basePath, suite.mockFR)
+	assert.EqualError(suite.T(),err1,customError)
+
+}
+
+func (suite *FileSourceTestSuite) TestValidFileSource_ErrorWithReadFileWithExtension() {
+	var basePath = filepath.Join("base")
+	err := fmt.Errorf(customError)
+	suite.mockFR.On("ReadDirs", basePath).Return([]string{"sub1"}, nil)
+	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, "sub1"), ".sql").Return(nil, err)
+
+	_ , err1 := GetFileSource(basePath, suite.mockFR)
+	assert.EqualError(suite.T(),err1,customError)
+
+}
+
+func (suite *FileSourceTestSuite) TestValidFileSource_ErrorWithReadFileWithWrongName() {
+	var basePath = filepath.Join("base")
+	suite.mockFR.On("ReadDirs", basePath).Return([]string{"sub1"}, nil)
+	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, "sub1"), ".sql").Return([]string{"test"}, nil)
+
+	_ , err1 := GetFileSource(basePath, suite.mockFR)
+	assert.EqualError(suite.T(),err1,"file Name format Not correct, issue with number of separators in test")
 
 }
 

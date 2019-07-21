@@ -7,13 +7,13 @@ import (
 
 // ReaderImplementation  implementation of FileReader
 type ReaderImplementation struct {
-	fs afero.Fs
+	Fs afero.Fs
 }
 
 //ReadDirs reads all sub directories in a directory
 func (f ReaderImplementation) ReadDirs(root string) ([]string, error) {
 	var dirList []string
-	files, err := afero.ReadDir(f.fs,root)
+	files, err := afero.ReadDir(f.Fs,root)
 	if err != nil {
 		return dirList,err
 	}
@@ -27,11 +27,11 @@ func (f ReaderImplementation) ReadDirs(root string) ([]string, error) {
 
 // ReadFilesWithExtension just for testing
 func (f ReaderImplementation) ReadFilesWithExtension(root string, extension string) ([]string, error) {
-	return afero.Glob(f.fs,filepath.Join(root , "*" + extension))
+	return afero.Glob(f.Fs,filepath.Join(root , "*" + extension))
 }
 
 func (f ReaderImplementation) ReadFileAsString(path string) (string, error) {
-	b, err := afero.ReadFile(f.fs,path)
+	b, err := afero.ReadFile(f.Fs,path)
 	if err != nil {
 		return "", err
 	}

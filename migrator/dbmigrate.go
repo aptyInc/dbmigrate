@@ -16,53 +16,59 @@ type DBMigration interface{
 }
 //DBMigrationImplementation the main service to execute the migration
 type DBMigrationImplementation struct {
-	src *source.FileSource
-	tgt *target.DatabaseImplementation
+	Src source.MigrationSource
+	Tgt target.Database
 }
 
 func (dbm *DBMigrationImplementation) initGetMaxSequence(schema string) (int, error) {
-	isFound, err1 := dbm.tgt.DoMigrationTableExists(schema)
+	isFound, err1 := dbm.Tgt.DoMigrationTableExists(schema)
 	if err1 != nil {
 		return -1, err1
 	}
 	if !isFound {
-		err1 := dbm.tgt.CreateMigrationTable(schema)
+		err1 := dbm.Tgt.CreateMigrationTable(schema)
 		return -1, err1
 	}
-	return dbm.tgt.GetMaxSequence(schema)
+	return dbm.Tgt.GetMaxSequence(schema)
 }
 func (dbm *DBMigrationImplementation) migrateSequenceUp(schema string, version int, batch string) error {
-	name, commands, err1 := dbm.src.GetMigrationUpFile(schema, version)
+	name, commands, err1 := dbm.Src.GetMigrationUpFile(schema, version)
 
 	if err1 != nil {
 		return err1
 	}
-	err2 := dbm.tgt.ExecuteMigration(schema, commands)
+	err2 := dbm.Tgt.ExecuteMigration(schema, commands)
 	if err2 != nil {
 		return err2
 	}
 
-	return dbm.tgt.InsertMigrationLog(schema, version, name, batch)
+	return dbm.Tgt.InsertMigrationLog(schema, version, name, batch)
 
 }
 
-func (dbm *DBMigrationImplementation) migrateSequenceDown(schema string, version int) error {
-	_, commands, err1 := dbm.src.GetMigrationDownFile(schema, version)
+func (dbm *DBMigrationImplementation) migrateSequenceDown(schema string, sequence int) error {
+	_, commands, err1 := dbm.Src.GetMigrationDownFile(schema, sequence)
 
 	if err1 != nil {
 		return err1
 	}
-	return dbm.tgt.ExecuteMigration(schema, commands)
+	return dbm.Tgt.ExecuteMigration(schema, commands)
 
 }
 
 func (dbm *DBMigrationImplementation) MigrateSchemaUp(schema string) error {
-
+	doesSchemaExists, err := dbm.Tgt.DoesSchemaExists(schema)
+	if err != nil {
+		return err
+	}
+	if !doesSchemaExists {
+		dbm.Tgt.CreateSchema(schema)
+	}
 	maxSequence, err1 := dbm.initGetMaxSequence(schema)
 	if err1 != nil {
 		return err1
 	}
-	allVersions, err2 := dbm.src.GetSortedVersions(schema)
+	allVersions, err2 := dbm.Src.GetSortedVersions(schema)
 	if err2 != nil {
 		return err2
 	}
@@ -80,19 +86,19 @@ func (dbm *DBMigrationImplementation) MigrateSchemaUp(schema string) error {
 
 func (dbm *DBMigrationImplementation) MigrateSchemaDown(schema string) error {
 
-	doExisit, err1 := dbm.tgt.DoMigrationTableExists(schema)
+	doExist, err1 := dbm.Tgt.DoMigrationTableExists(schema)
 	if err1 != nil {
 		return err1
 	}
-	if !doExisit {
+	if !doExist {
 		return fmt.Errorf("no Migrations in schema")
 	}
 
-	batch, err2 := dbm.tgt.GetLatestBatch(schema)
+	batch, err2 := dbm.Tgt.GetLatestBatch(schema)
 	if err2 != nil {
 		return err2
 	}
-	sequences, err3 := dbm.tgt.GetSequenceByBatch(schema, batch)
+	sequences, err3 := dbm.Tgt.GetSequenceByBatch(schema, batch)
 	if err3 != nil {
 		return err3
 	}
@@ -103,12 +109,12 @@ func (dbm *DBMigrationImplementation) MigrateSchemaDown(schema string) error {
 		}
 
 	}
-	return dbm.tgt.DeleteMigrationLog(schema, batch)
+	return dbm.Tgt.DeleteMigrationLog(schema, batch)
 }
 
 //MigrateUp  Migrates all the schemas Up
 func (dbm *DBMigrationImplementation) MigrateUp() error {
-	schemasT0Migrate, err1 := dbm.src.GetSchemaList()
+	schemasT0Migrate, err1 := dbm.Src.GetSchemaList()
 	if err1 != nil {
 		return err1
 	}
@@ -123,7 +129,7 @@ func (dbm *DBMigrationImplementation) MigrateUp() error {
 
 //MigrateDown  Migrates all the schemas Down
 func (dbm *DBMigrationImplementation) MigrateDown() error {
-	schemasT0Migrate, err1 := dbm.src.GetSchemaList()
+	schemasT0Migrate, err1 := dbm.Src.GetSchemaList()
 	if err1 != nil {
 		return err1
 	}

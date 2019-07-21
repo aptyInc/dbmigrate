@@ -1,0 +1,2 @@
+databaseURL: postgres://postgres:postgres@localhost:5432/test
+directory: sample

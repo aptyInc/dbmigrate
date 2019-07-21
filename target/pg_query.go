@@ -16,7 +16,7 @@ func (p Postgres) CreateMigrationTableSQL(schema string) string {
 									id           SERIAL       PRIMARY KEY,
 									sequence		 INT UNIQUE NOT NULL,
 									name				 VARCHAR(255)  UNIQUE NOT NULL,
-									batch				 VARCHAR(50)  NOT NULL,
+									batch				 VARCHAR(150)  NOT NULL,
                   run_on 			 TIMESTAMP WITHOUT TIME ZONE DEFAULT TIMEZONE('utc',now()) NOT NULL
                 )`, schema)
 }

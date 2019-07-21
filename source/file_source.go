@@ -21,15 +21,16 @@ type FileSource struct {
 func getFileDetails(file string) (version int, isUp bool, isDown bool, err error) {
 	parts := strings.Split(file, ".")
 	if len(parts) != 3 {
-		return -1, false, false, fmt.Errorf("File Name format Not correct, issue with number of seprators in %s", file)
+		return -1, false, false, fmt.Errorf("file Name format Not correct, issue with number of separators in %s", file)
 	}
 	splits := strings.Split(parts[0], "-")
 	if len(splits) != 2 {
-		return -1, false, false, fmt.Errorf("File Name format Not correct, issue with number of seprators in %s", file)
+		return -1, false, false, fmt.Errorf("file Name format Not correct, issue with number of separators in %s", file)
 	}
 	version, err2 := strconv.Atoi(splits[0])
 	if err2 != nil {
-		return -1, false, false, fmt.Errorf("File Name format Not correct, issue with version number of %s", file)
+		fmt.Println(err2)
+		return -1, false, false, fmt.Errorf("file Name format Not correct, issue with version number of %s", file)
 	}
 
 	isUp = parts[1] == "UP"
@@ -52,6 +53,7 @@ func unique(intSlice []int) []int {
 
 //GetFileSource returns as Filesource Object
 func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) {
+	fmt.Println("Source Directory:",baseLocation)
 	folders, err := fs.ReadDirs(baseLocation)
 	if err != nil {
 		return nil, err
@@ -65,7 +67,8 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 			return nil, err
 		}
 		for _, file := range files {
-			version, isUP, isDown, err1 := getFileDetails(file)
+
+			version, isUP, isDown, err1 := getFileDetails(filepath.Base(file))
 			if err1 != nil {
 				return nil, err1
 			}
@@ -112,14 +115,16 @@ func (fs *FileSource) GetSortedVersions(schema string) ([]int, error) {
 
 // GetMigrationUpFile returns the Migration Up Files of specifed version
 func (fs *FileSource) GetMigrationUpFile(schema string, version int) (string, string, error) {
-	filePath := filepath.Join(fs.location, schema, fs.schemaUpMigrationsMap[schema][version])
+	filePath := filepath.Join(fs.location,fs.schemaUpMigrationsMap[schema][version])
+	// TODO Bug here remove schema from join
+	fmt.Println(filePath)
 	contents, err := fs.reader.ReadFileAsString(filePath)
 	return fs.schemaUpMigrationsMap[schema][version], contents, err
 }
 
 // GetMigrationDownFile returns the Migration Down Files of specifed version
 func (fs *FileSource) GetMigrationDownFile(schema string, version int) (string, string, error) {
-	filePath := filepath.Join(fs.location, schema, fs.schemaDownMigrationsMap[schema][version])
+	filePath := filepath.Join(fs.location, fs.schemaDownMigrationsMap[schema][version])
 	contents, err := fs.reader.ReadFileAsString(filePath)
 	return fs.schemaDownMigrationsMap[schema][version], contents, err
 }
