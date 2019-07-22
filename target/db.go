@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"net"
-	"net/url"
 )
 
 type Database interface{
@@ -50,8 +48,19 @@ func (base *DatabaseImplementation) GetMaxSequence(schema string) (int, error) {
 //GetLatestBatch Gets the latest batch in the schema
 func (base *DatabaseImplementation) GetLatestBatch(schema string) (string, error) {
 	var batch string
-	err := base.DB.QueryRow(base.mq.GetLatestBatchSQL(schema)).Scan(&batch)
-	return batch, err
+	row := base.DB.QueryRow(base.mq.GetLatestBatchSQL(schema))
+
+	switch err := row.Scan( &batch); err {
+	case sql.ErrNoRows:
+		fmt.Println("No batch were returned!")
+		return "",nil
+	case nil:
+		return batch, err
+	default:
+		return "", err
+	}
+	//.Scan(&batch)
+
 }
 
 //InsertMigrationLog inserts a migration log
@@ -124,41 +133,4 @@ func (base *DatabaseImplementation) DoesSchemaExists(schema string) (bool, error
 func (base *DatabaseImplementation) CreateSchema(schema string) error {
 	_, err := base.DB.Exec(base.mq.CreateSchemaSQL(schema))
 	return err
-}
-
-//GetDatabase returns DB implementation
-func GetDatabase(dbURL string) (*DatabaseImplementation,error) {
-	fmt.Println("Database URL:",dbURL)
-	u, err1 := url.Parse(dbURL)
-	if err1!=nil {
-		return nil,err1
-	}
-	if u.Scheme != "postgres"{
-		return nil, fmt.Errorf("unsupported database")
-	}
- 	host, port, err2 := net.SplitHostPort(u.Host)
-	if err2!=nil {
-		return nil,err2
-	}
-	password, err3 := u.User.Password()
-	if !err3  {
-		return nil, fmt.Errorf("no password provided")
-	}
-	sqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, u.User.Username(), password, u.Path[1:])
-
-	db, err4 := sql.Open("postgres", sqlInfo)
-	if err4 != nil {
-		return nil,err4
-	}
-	err5 := db.Ping()
-	if err5 != nil {
-		return nil,err5
-	}
-	impl := &DatabaseImplementation{
-		mq:Postgres{},
-		DB:db,
-	}
-	return impl,nil
-
 }

@@ -30,6 +30,7 @@ func (suite *DBMigrationTestSuite) SetupTest() {
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error1() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test1").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test1").Return(false,err)
 	err1 := suite.migration.MigrateSchemaUp("Test1")
 	assert.EqualError(suite.T(),err1,customError,"Extend Error")
@@ -37,6 +38,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error1() 
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error2() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(false,nil)
 	suite.tgt.On("CreateMigrationTable","Test").Return(err)
 	err1 := suite.migration.MigrateSchemaUp("Test")
@@ -45,6 +47,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error2() 
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error3() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,err)
 	err1 := suite.migration.MigrateSchemaUp("Test")
@@ -53,6 +56,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error3() 
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error4() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,nil)
 	suite.src.On("GetSortedVersions","Test").Return(nil,err)
@@ -63,6 +67,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error4() 
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error5() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,nil)
 	suite.src.On("GetSortedVersions","Test").Return([]int{1,2},nil)
@@ -73,6 +78,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error5() 
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error6() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,nil)
 	suite.src.On("GetSortedVersions","Test").Return([]int{1,2},nil)
@@ -84,6 +90,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error6() 
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error7() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,nil)
 	suite.src.On("GetSortedVersions","Test").Return([]int{1},err)
@@ -95,6 +102,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_error7() 
 }
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_ForNew() {
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,nil)
 	suite.src.On("GetSortedVersions","Test").Return([]int{1},nil)
@@ -106,6 +114,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_ForNew() 
 }
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_ForNoUpdates() {
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(5,nil)
 	suite.src.On("GetSortedVersions","Test").Return([]int{1,2,3,4},nil)
@@ -113,15 +122,41 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaUp_ForNoUpda
 	assert.NoError(suite.T(),err1)
 }
 
-func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_Error1() {
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ErrorGetSchemaListAndSchemaCreated() {
+	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(false,nil)
+	suite.tgt.On("CreateSchema","Test").Return(nil)
+	suite.src.On("GetSchemaList").Return(nil,err)
+	err1 := suite.migration.MigrateUp()
+	assert.EqualError(suite.T(),err1,customError)
+}
+
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ErrorInSchemaCreation() {
+	err := fmt.Errorf(customError)
+	suite.src.On("GetSchemaList").Return([]string{"Test"},nil)
+	suite.tgt.On("DoesSchemaExists","Test").Return(false,nil)
+	suite.tgt.On("CreateSchema","Test").Return(err)
+	err1 := suite.migration.MigrateUp()
+	assert.EqualError(suite.T(),err1,customError)
+}
+
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ErrorDoesSchemaExists() {
+	err := fmt.Errorf(customError)
+	suite.src.On("GetSchemaList").Return([]string{"Test"},nil)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,err)
+	err1 := suite.migration.MigrateUp()
+	assert.EqualError(suite.T(),err1,customError)
+}
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ErrorGetSchemaList() {
 	err := fmt.Errorf(customError)
 	suite.src.On("GetSchemaList").Return(nil,err)
 	err1 := suite.migration.MigrateUp()
 	assert.EqualError(suite.T(),err1,customError)
 }
 
-func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_Error2() {
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ErrorWithDoMigrationTableExists() {
 	err := fmt.Errorf(customError)
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.src.On("GetSchemaList").Return([]string{"Test"},nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(false,err)
 	err1 := suite.migration.MigrateUp()
@@ -129,6 +164,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_Error2() {
 }
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ForNew() {
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.src.On("GetSchemaList").Return([]string{"Test"},nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(-1,nil)
@@ -141,6 +177,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ForNew() {
 }
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ForNoUpdates() {
+	suite.tgt.On("DoesSchemaExists","Test").Return(true,nil)
 	suite.src.On("GetSchemaList").Return([]string{"Test"},nil)
 	suite.tgt.On("DoMigrationTableExists","Test").Return(true,nil)
 	suite.tgt.On("GetMaxSequence","Test").Return(5,nil)
@@ -149,7 +186,7 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateUp_ForNoUpdates() 
 	assert.NoError(suite.T(),err1)
 }
 
-func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaDown_error1() {
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaDown_errorWithDoMigrationTableExists() {
 	err := fmt.Errorf(customError)
 	suite.tgt.On("DoMigrationTableExists","Test1").Return(false,err)
 	err1 := suite.migration.MigrateSchemaDown("Test1")
@@ -159,7 +196,14 @@ func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaDown_error1(
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaDown_MigrationDoesntExist() {
 	suite.tgt.On("DoMigrationTableExists","Test1").Return(false,nil)
 	err1 := suite.migration.MigrateSchemaDown("Test1")
-	assert.EqualError(suite.T(),err1,"no Migrations in schema")
+	assert.NoError(suite.T(),err1)
+}
+
+func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaDown_LatestBatchDoesntExist() {
+	suite.tgt.On("DoMigrationTableExists","Test1").Return(true,nil)
+	suite.tgt.On("GetLatestBatch","Test1").Return("",nil)
+	err1 := suite.migration.MigrateSchemaDown("Test1")
+	assert.NoError(suite.T(),err1)
 }
 
 func (suite *DBMigrationTestSuite) TestDBMigrationTest_MigrateSchemaDown_error2() {

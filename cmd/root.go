@@ -77,7 +77,16 @@ func initConfig() {
     fmt.Println(err2)
     os.Exit(1)
   }
-  src,err1 := source.GetFileSource(viper.GetString("directory"),&source.ReaderImplementation{Fs:afero.NewOsFs()})
+  path:=viper.GetString("directory")
+  if path == "."{
+    home, err := os.Getwd()
+    if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+    }
+    path = home
+  }
+  src,err1 := source.GetFileSource(path,&source.ReaderImplementation{Fs:afero.NewOsFs()})
   if err1!= nil {
     fmt.Println(err1)
     os.Exit(1)

@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,12 @@ var upCmd = &cobra.Command{
 	Short: "Runs the up migrations",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return migration.MigrateUp()
+		err := migration.MigrateUp()
+		if err!= nil{
+			fmt.Println("Error while migrating up")
+			return err
+		}
+		return nil
 	},
 }
 

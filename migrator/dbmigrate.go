@@ -32,11 +32,12 @@ func (dbm *DBMigrationImplementation) initGetMaxSequence(schema string) (int, er
 	return dbm.Tgt.GetMaxSequence(schema)
 }
 func (dbm *DBMigrationImplementation) migrateSequenceUp(schema string, version int, batch string) error {
-	name, commands, err1 := dbm.Src.GetMigrationUpFile(schema, version)
 
+	name, commands, err1 := dbm.Src.GetMigrationUpFile(schema, version)
 	if err1 != nil {
 		return err1
 	}
+
 	err2 := dbm.Tgt.ExecuteMigration(schema, commands)
 	if err2 != nil {
 		return err2
@@ -62,7 +63,10 @@ func (dbm *DBMigrationImplementation) MigrateSchemaUp(schema string) error {
 		return err
 	}
 	if !doesSchemaExists {
-		dbm.Tgt.CreateSchema(schema)
+		err = dbm.Tgt.CreateSchema(schema)
+		if err != nil {
+			return err
+		}
 	}
 	maxSequence, err1 := dbm.initGetMaxSequence(schema)
 	if err1 != nil {
@@ -91,12 +95,16 @@ func (dbm *DBMigrationImplementation) MigrateSchemaDown(schema string) error {
 		return err1
 	}
 	if !doExist {
-		return fmt.Errorf("no Migrations in schema")
+		 fmt.Println("No Migrations in schema, so skipped")
+		 return nil
 	}
 
 	batch, err2 := dbm.Tgt.GetLatestBatch(schema)
 	if err2 != nil {
 		return err2
+	}
+	if len(batch) == 0{
+		return nil
 	}
 	sequences, err3 := dbm.Tgt.GetSequenceByBatch(schema, batch)
 	if err3 != nil {
@@ -114,11 +122,11 @@ func (dbm *DBMigrationImplementation) MigrateSchemaDown(schema string) error {
 
 //MigrateUp  Migrates all the schemas Up
 func (dbm *DBMigrationImplementation) MigrateUp() error {
-	schemasT0Migrate, err1 := dbm.Src.GetSchemaList()
+	schemasToMigrate, err1 := dbm.Src.GetSchemaList()
 	if err1 != nil {
 		return err1
 	}
-	for _, schema := range schemasT0Migrate {
+	for _, schema := range schemasToMigrate {
 		err2 := dbm.MigrateSchemaUp(schema)
 		if err2 != nil {
 			return err2

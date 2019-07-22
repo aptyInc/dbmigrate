@@ -9,4 +9,16 @@ This is command line utility to manage database migrations. This is developed fo
   < VersionNumber >-< Purpose >.{up/down}.sql
   Version Number should be integer, Purpose is a String without "-" or white spaces. It is recommended not to use any special chararecters in  the file names.
   Sample: 05-AddUser.up.sql,05-AddUser.down.sql
+  
+## To Test
+- checkout this project
+- run ```go install``` in the project.
+- Keep the Database URL handy.
+- create a directory with names as specified above.(A sample folder is found in this repo)
+- Go the sample folder
+- Run the following command to Upgrade the database.
+```
+dbmigrate up --databaseURL postgres://postgres:postgres@localhost:5432/test --directory .
+```
+
 
