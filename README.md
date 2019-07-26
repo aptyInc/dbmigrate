@@ -22,3 +22,9 @@ dbmigrate up --databaseURL postgres://postgres:postgres@localhost:5432/test --di
 ```
 
 
+## To Release 
+You need to have [goreleaser](https://goreleaser.com/) installed on your machine
+export GITHUB_TOKEN=`YOUR_GH_TOKEN`
+git tag -a v0.1.0 -m "First release"
+git push origin v0.1.0
+goreleaser
