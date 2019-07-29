@@ -53,7 +53,7 @@ func unique(intSlice []int) []int {
 
 //GetFileSource returns as Filesource Object
 func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) {
-	fmt.Println("Source Directory:",baseLocation)
+	fmt.Println("Source Directory:", baseLocation)
 	folders, err := fs.ReadDirs(baseLocation)
 	if err != nil {
 		return nil, err
@@ -61,12 +61,17 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 	var schemaUPFilesMap = make(map[string]map[int]string)
 	var schemaDownFilesMap = make(map[string]map[int]string)
 	var sortedVersions = make(map[string][]int)
+	var validFolder []string
 	for _, folder := range folders {
 		var versions []int
 		files, err := fs.ReadFilesWithExtension(filepath.Join(baseLocation, folder), ".sql")
 		if err != nil {
 			return nil, err
 		}
+		if len(files) == 0 {
+			continue
+		}
+		validFolder = append(validFolder, folder)
 		for _, file := range files {
 
 			version, isUP, isDown, err1 := getFileDetails(filepath.Base(file))
@@ -97,7 +102,7 @@ func GetFileSource(baseLocation string, fs FileReader) (MigrationSource, error) 
 	}
 
 	source := FileSource{
-		schemas:                 folders,
+		schemas:                 validFolder,
 		schemaUpMigrationsMap:   schemaUPFilesMap,
 		schemaDownMigrationsMap: schemaDownFilesMap,
 		sortedVersions:          sortedVersions,
