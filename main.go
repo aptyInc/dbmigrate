@@ -1,7 +1,9 @@
 package main
 
-import "github.com/apty/dbmigrate/cmd"
+import (
+  "github.com/aptyInc/dbmigrate/cmd"
+)
 
 func main() {
-  cmd.Execute()
+	cmd.Execute()
 }

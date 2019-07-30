@@ -2,8 +2,8 @@ package migrator
 
 import (
 	"fmt"
-	sourceMocks "github.com/apty/dbmigrate/source/mocks"
-	targetMocks "github.com/apty/dbmigrate/target/mocks"
+	sourceMocks "github.com/aptyInc/dbmigrate/source/mocks"
+	targetMocks "github.com/aptyInc/dbmigrate/target/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
