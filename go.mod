@@ -1,4 +1,4 @@
-module github.com/apty/dbmigrate
+module github.com/aptyInc/dbmigrate
 
 go 1.12
 
