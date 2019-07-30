@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/apty/dbmigrate/source/mocks"
+	"github.com/aptyInc/dbmigrate/source/mocks"
 )
 
 // FileSourceInternalTestSuite Suite to test

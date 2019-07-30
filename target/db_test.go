@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 
-	"github.com/apty/dbmigrate/target/mocks"
+	"github.com/aptyInc/dbmigrate/target/mocks"
 )
 
 type PGDatabaseTestSuite struct {

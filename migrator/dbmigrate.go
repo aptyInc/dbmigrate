@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/apty/dbmigrate/source"
-	"github.com/apty/dbmigrate/target"
+	"github.com/aptyInc/dbmigrate/source"
+	"github.com/aptyInc/dbmigrate/target"
 )
 
 type DBMigration interface{
