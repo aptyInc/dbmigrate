@@ -126,12 +126,14 @@ func (fs *FileSource) GetSortedVersions(schema string) ([]int, error) {
 func (fs *FileSource) GetMigrationUpFile(schema string, version int) (string, string, error) {
 	filePath := fs.schemaUpMigrationsMap[schema][version]
 	contents, err := fs.reader.ReadFileAsString(filePath)
-	return fs.schemaUpMigrationsMap[schema][version], contents, err
+	_, fileName := filepath.Split(filePath)
+	return fileName, contents, err
 }
 
 // GetMigrationDownFile returns the Migration Down Files of specifed version
 func (fs *FileSource) GetMigrationDownFile(schema string, version int) (string, string, error) {
 	filePath := fs.schemaDownMigrationsMap[schema][version]
 	contents, err := fs.reader.ReadFileAsString(filePath)
-	return fs.schemaDownMigrationsMap[schema][version], contents, err
+	_, fileName := filepath.Split(filePath)
+	return fileName, contents, err
 }

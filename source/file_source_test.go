@@ -21,14 +21,15 @@ func (suite *FileSourceTestSuite) SetupTest() {
 	suite.mockFR = new(mocks.FileReader)
 
 }
-const customError  ="MyError"
+
+const customError = "MyError"
 
 func (suite *FileSourceTestSuite) TestValidFileSource_ErrorWithReadDirs() {
 	var basePath = filepath.Join("base")
 	err := fmt.Errorf(customError)
 	suite.mockFR.On("ReadDirs", basePath).Return(nil, err)
-	_ , err1 := GetFileSource(basePath, suite.mockFR)
-	assert.EqualError(suite.T(),err1,customError)
+	_, err1 := GetFileSource(basePath, suite.mockFR)
+	assert.EqualError(suite.T(), err1, customError)
 
 }
 
@@ -38,8 +39,8 @@ func (suite *FileSourceTestSuite) TestValidFileSource_ErrorWithReadFileWithExten
 	suite.mockFR.On("ReadDirs", basePath).Return([]string{"sub1"}, nil)
 	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, "sub1"), ".sql").Return(nil, err)
 
-	_ , err1 := GetFileSource(basePath, suite.mockFR)
-	assert.EqualError(suite.T(),err1,customError)
+	_, err1 := GetFileSource(basePath, suite.mockFR)
+	assert.EqualError(suite.T(), err1, customError)
 
 }
 
@@ -48,8 +49,8 @@ func (suite *FileSourceTestSuite) TestValidFileSource_ErrorWithReadFileWithWrong
 	suite.mockFR.On("ReadDirs", basePath).Return([]string{"sub1"}, nil)
 	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, "sub1"), ".sql").Return([]string{"test"}, nil)
 
-	_ , err1 := GetFileSource(basePath, suite.mockFR)
-	assert.EqualError(suite.T(),err1,"file Name format Not correct, issue with number of separators in test")
+	_, err1 := GetFileSource(basePath, suite.mockFR)
+	assert.EqualError(suite.T(), err1, "file Name format Not correct, issue with number of separators in test")
 
 }
 
@@ -57,13 +58,19 @@ func (suite *FileSourceTestSuite) TestValidFileSource() {
 	var basePath = filepath.Join("base")
 	var dirs = []string{"sub1", "sub2"}
 	var files = []string{"03-file1.UP.sql", "03-file1.DOWN.sql", "02-file2.UP.sql", "02-file2.DOWN.sql"}
+	var full0files = []string{filepath.Join(basePath, dirs[0], files[0]), filepath.Join(basePath, dirs[0], files[1]), filepath.Join(basePath, dirs[0], files[2]), filepath.Join(basePath, dirs[0], files[3])}
+	var full1files = []string{filepath.Join(basePath, dirs[1], files[0]), filepath.Join(basePath, dirs[1], files[1]), filepath.Join(basePath, dirs[1], files[2]), filepath.Join(basePath, dirs[1], files[3])}
 	suite.mockFR.On("ReadDirs", basePath).Return(dirs, nil)
-	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, dirs[0]), ".sql").Return(files, nil)
-	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, dirs[1]), ".sql").Return(files, nil)
-	suite.mockFR.On("ReadFileAsString", files[0]).Return(files[0], nil)
-	suite.mockFR.On("ReadFileAsString", files[1]).Return(files[1], nil)
-	suite.mockFR.On("ReadFileAsString", files[2]).Return(files[2], nil)
-	suite.mockFR.On("ReadFileAsString", files[3]).Return(files[3], nil)
+	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, dirs[0]), ".sql").Return(full0files, nil)
+	suite.mockFR.On("ReadFilesWithExtension", filepath.Join(basePath, dirs[1]), ".sql").Return(full1files, nil)
+	suite.mockFR.On("ReadFileAsString", full0files[0]).Return(files[0], nil)
+	suite.mockFR.On("ReadFileAsString", full0files[1]).Return(files[1], nil)
+	suite.mockFR.On("ReadFileAsString", full0files[2]).Return(files[2], nil)
+	suite.mockFR.On("ReadFileAsString", full0files[3]).Return(files[3], nil)
+	suite.mockFR.On("ReadFileAsString", full1files[0]).Return(files[0], nil)
+	suite.mockFR.On("ReadFileAsString", full1files[1]).Return(files[1], nil)
+	suite.mockFR.On("ReadFileAsString", full1files[2]).Return(files[2], nil)
+	suite.mockFR.On("ReadFileAsString", full1files[3]).Return(files[3], nil)
 
 	fs, err := GetFileSource(basePath, suite.mockFR)
 	assert.NoError(suite.T(), err)
