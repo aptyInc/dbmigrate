@@ -1,7 +1,7 @@
 package main
 
 import (
-  "github.com/aptyInc/dbmigrate/cmd"
+	"github.com/aptyInc/dbmigrate/cmd"
 )
 
 func main() {

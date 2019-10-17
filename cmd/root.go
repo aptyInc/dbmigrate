@@ -1,17 +1,17 @@
 package cmd
 
 import (
-	"fmt" 
+	"fmt"
+	"os"
+
 	"github.com/aptyInc/dbmigrate/migrator"
 	"github.com/aptyInc/dbmigrate/source"
 	"github.com/aptyInc/dbmigrate/target"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-  "os"
 
 	"github.com/spf13/viper"
 )
-
 
 var cfgFile string
 var migration *migrator.DBMigrationImplementation
@@ -67,15 +67,16 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
+	var isSSLRequred = viper.GetBool("IS_PG_SSL_REQUIRED")
 
-
-	tgt,err2:=target.GetDatabase(viper.GetString("DATABASE_URL"))
-	if err2!= nil {
+	tgt, err2 := target.GetDatabase(viper.GetString("DATABASE_URL"), isSSLRequred)
+	if err2 != nil {
 		fmt.Println(err2)
 		os.Exit(1)
 	}
-	path:=viper.GetString("directory")
-	if path == "."{
+
+	path := viper.GetString("directory")
+	if path == "." {
 		home, err := os.Getwd()
 		if err != nil {
 			fmt.Println(err)
@@ -83,14 +84,13 @@ func initConfig() {
 		}
 		path = home
 	}
-	src,err1 := source.GetFileSource(path,&source.ReaderImplementation{Fs:afero.NewOsFs()})
-	if err1!= nil {
+	src, err1 := source.GetFileSource(path, &source.ReaderImplementation{Fs: afero.NewOsFs()})
+	if err1 != nil {
 		fmt.Println(err1)
 		os.Exit(1)
 	}
-	migration =  &migrator.DBMigrationImplementation{
-		Src:src,
-		Tgt:tgt,
+	migration = &migrator.DBMigrationImplementation{
+		Src: src,
+		Tgt: tgt,
 	}
 }
-
