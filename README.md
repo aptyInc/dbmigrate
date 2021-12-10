@@ -1,7 +1,7 @@
 # DB Migrate
 This is command line utility to manage database migrations. This is developed for specific need where we have manage seprate migrations for diffrent schemas.
 
-##Basic Rules for writing migration files
+## Basic Rules for writing migration files
 - Folders in which sql files exsists is treated as schema name. If the schema does not exist it is created so  the user should have permission to create the schema and also table.
 - Only one level deep folders are checked.
 - Every migration should have up and down scripts.
