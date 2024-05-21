@@ -3,46 +3,45 @@ package target
 import (
 	"database/sql"
 	"fmt"
-	"net"
-	"net/url"
+	"os"
+	"strconv"
 )
 
-func getSQLInfo(dbURL string, isSSLRequred bool) (string, error) {
-	u, err1 := url.Parse(dbURL)
-	if err1 != nil {
-		return "", err1
-	}
-	if u.Scheme != "postgres" {
-		return "", fmt.Errorf("unsupported database")
-	}
-	host, port, err2 := net.SplitHostPort(u.Host)
-	if err2 != nil {
-		return "", err2
-	}
-	password, err3 := u.User.Password()
-	if !err3 {
-		return "", fmt.Errorf("no password provided")
-	}
-
-	if len(u.Path) < 1 {
-		return "", fmt.Errorf("no database provided or wrong")
-	}
-	var sslMode = "disable"
-	if isSSLRequred {
-		sslMode = "require"
-	}
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		host, port, u.User.Username(), password, u.Path[1:], sslMode), nil
+// GetDBDir return migration dir
+func GetDBMigrationDir() string {
+	return os.Getenv("DB_MIGRATION_DIR")
 }
 
-//GetDatabase returns DB implementation
-func GetDatabase(dbURL string, isSSLRequred bool) (*DatabaseImplementation, error) {
-	fmt.Println("Database URL:", dbURL)
-	sqlInfo, err1 := getSQLInfo(dbURL, isSSLRequred)
-	if err1 != nil {
-		return nil, err1
+// GetDBURL returns DB URL string
+func GetDBURL() string {
+	host := os.Getenv("DB_HOST")
+	password := os.Getenv("DB_PASSWORD")
+	user := os.Getenv("DB_USER")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+	isSSLEnabled, _ := strconv.ParseBool(os.Getenv("DB_SSL_ENABLED"))
+	caPath := os.Getenv("DB_SSL_CA_PATH")
+	certPath := os.Getenv("DB_SSL_CERT_PATH")
+	keyPath := os.Getenv("DB_SSL_KEY_PATH")
+	sslmode := os.Getenv("DB_SSL_MODE")
+	schema := os.Getenv("DB_SCHEMA")
+	pgStr := "postgres://%s:%s@%s:%s/%s?search_path=%s&sslmode=%s"
+	var connStr = fmt.Sprintf(pgStr, user, password, host, port, dbname, schema, sslmode)
+	if isSSLEnabled {
+		connStr = fmt.Sprintf(pgStr+"&sslmode=%s&sslrootcert=%s&sslkey=%s&sslcert=%s", user, password, host, port, dbname, schema, sslmode, caPath, keyPath, certPath)
 	}
-	db, err4 := sql.Open("postgres", sqlInfo)
+	return connStr
+}
+
+// GetDatabase returns DB implementation
+func GetDatabase() (*DatabaseImplementation, error) {
+	dbMaxConn, _ := strconv.Atoi(os.Getenv("DB_MAX_CONNECTIONS"))
+	connStr := GetDBURL()
+	if os.Getenv("DB_ENVIRONMENT") == "development" {
+		fmt.Println(connStr)
+	}
+	db, err4 := sql.Open("postgres", connStr)
+	db.SetMaxIdleConns(dbMaxConn)
 	if err4 != nil {
 		return nil, err4
 	}

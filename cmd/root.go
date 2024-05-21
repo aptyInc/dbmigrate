@@ -35,12 +35,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is dbmigrate.yaml in current directory)")
-	rootCmd.PersistentFlags().StringP("databaseURL", "u", "postgres://postgres:postgres@localhost:5432/dbmigrate", "the database to which migration has to happen (default is postgres://postgres:postgres@localhost:5432/dbmigrate)")
-	rootCmd.PersistentFlags().StringP("directory", "d", ".", "working directory where migration scripts are place")
-	viper.BindPFlag("DATABASE_URL", rootCmd.PersistentFlags().Lookup("databaseURL"))
-	viper.BindPFlag("directory", rootCmd.PersistentFlags().Lookup("directory"))
-
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -55,7 +49,6 @@ func initConfig() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-
 		viper.AddConfigPath(home)
 		viper.SetConfigName("dbmigrate")
 	}
@@ -67,15 +60,13 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-	var isSSLRequred = viper.GetBool("IS_PG_SSL_REQUIRED")
-
-	tgt, err2 := target.GetDatabase(viper.GetString("DATABASE_URL"), isSSLRequred)
+	tgt, err2 := target.GetDatabase()
 	if err2 != nil {
 		fmt.Println(err2)
 		os.Exit(1)
 	}
 
-	path := viper.GetString("directory")
+	path := target.GetDBMigrationDir()
 	if path == "." {
 		home, err := os.Getwd()
 		if err != nil {
