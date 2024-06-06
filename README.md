@@ -18,13 +18,13 @@ This is command line utility to manage database migrations. This is developed fo
 - Go the sample folder
 - Run the following command to Upgrade the database.
 ```
-dbmigrate up --databaseURL postgres://postgres:postgres@localhost:5432/test --directory .
+DB_URL=postgres://postgres:postgres@localhost:5432/test DB_MIGRATION_DIR=./migrations dbmigrate up
 ```
 
 
 ## To Release 
 You need to have [goreleaser](https://goreleaser.com/) installed on your machine
-export GITHUB_TOKEN=`YOUR_GH_TOKEN`
+export GITHUB_TOKEN=YOUR_GH_TOKEN
 git tag -a v0.1.5 -m "DB SSL Setup"
 git push origin v0.1.5
 goreleaser

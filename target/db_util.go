@@ -22,6 +22,10 @@ func getEnv(key string, defaultValue string) string {
 
 // GetDBURL returns DB URL string
 func GetDBURL() string {
+	connStr := os.Getenv("DB_URL")
+	if connStr != "" {
+		return connStr
+	}
 	host := getEnv("DB_HOST", "localhost")
 	password := getEnv("DB_PASSWORD", "postgres")
 	user := getEnv("DB_USER", "postgres")
@@ -34,7 +38,7 @@ func GetDBURL() string {
 	sslmode := getEnv("DB_SSL_MODE", "disable")
 	schema := os.Getenv("DB_SCHEMA")
 	pgStr := "postgres://%s:%s@%s:%s/%s?search_path=%s&sslmode=%s"
-	var connStr = fmt.Sprintf(pgStr, user, password, host, port, dbname, schema, sslmode)
+	connStr = fmt.Sprintf(pgStr, user, password, host, port, dbname, schema, sslmode)
 	if isSSLEnabled {
 		connStr = fmt.Sprintf(pgStr+"&sslmode=%s&sslrootcert=%s&sslkey=%s&sslcert=%s", user, password, host, port, dbname, schema, sslmode, caPath, keyPath, certPath)
 	}
