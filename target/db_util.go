@@ -9,21 +9,29 @@ import (
 
 // GetDBDir return migration dir
 func GetDBMigrationDir() string {
-	return os.Getenv("DB_MIGRATION_DIR")
+	return getEnv("DB_MIGRATION_DIR", "./migrations")
+}
+
+func getEnv(key string, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
 
 // GetDBURL returns DB URL string
 func GetDBURL() string {
-	host := os.Getenv("DB_HOST")
-	password := os.Getenv("DB_PASSWORD")
-	user := os.Getenv("DB_USER")
-	dbname := os.Getenv("DB_NAME")
-	port := os.Getenv("DB_PORT")
+	host := getEnv("DB_HOST", "localhost")
+	password := getEnv("DB_PASSWORD", "postgres")
+	user := getEnv("DB_USER", "postgres")
+	dbname := getEnv("DB_NAME", "postgres")
+	port := getEnv("DB_PORT", "5432")
 	isSSLEnabled, _ := strconv.ParseBool(os.Getenv("DB_SSL_ENABLED"))
 	caPath := os.Getenv("DB_SSL_CA_PATH")
 	certPath := os.Getenv("DB_SSL_CERT_PATH")
 	keyPath := os.Getenv("DB_SSL_KEY_PATH")
-	sslmode := os.Getenv("DB_SSL_MODE")
+	sslmode := getEnv("DB_SSL_MODE", "disable")
 	schema := os.Getenv("DB_SCHEMA")
 	pgStr := "postgres://%s:%s@%s:%s/%s?search_path=%s&sslmode=%s"
 	var connStr = fmt.Sprintf(pgStr, user, password, host, port, dbname, schema, sslmode)
@@ -35,7 +43,7 @@ func GetDBURL() string {
 
 // GetDatabase returns DB implementation
 func GetDatabase() (*DatabaseImplementation, error) {
-	dbMaxConn, _ := strconv.Atoi(os.Getenv("DB_MAX_CONNECTIONS"))
+	dbMaxConn, _ := strconv.Atoi(getEnv("DB_MAX_CONNECTIONS", "1"))
 	connStr := GetDBURL()
 	if os.Getenv("DB_ENVIRONMENT") == "development" {
 		fmt.Println(connStr)
