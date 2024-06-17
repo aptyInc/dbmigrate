@@ -40,7 +40,7 @@ func GetDBURL() string {
 	pgStr := "postgres://%s:%s@%s:%s/%s?search_path=%s&sslmode=%s"
 	connStr = fmt.Sprintf(pgStr, user, password, host, port, dbname, schema, sslmode)
 	if isSSLEnabled {
-		connStr = fmt.Sprintf(pgStr+"&sslmode=%s&sslrootcert=%s&sslkey=%s&sslcert=%s", user, password, host, port, dbname, schema, sslmode, caPath, keyPath, certPath)
+		connStr = fmt.Sprintf(pgStr+"&sslrootcert=%s&sslkey=%s&sslcert=%s", user, password, host, port, dbname, schema, sslmode, caPath, keyPath, certPath)
 	}
 	return connStr
 }
